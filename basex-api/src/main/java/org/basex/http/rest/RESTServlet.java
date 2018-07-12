@@ -24,14 +24,20 @@ public final class RESTServlet extends BaseXServlet {
     // generate and run commands
     final RESTCmd cmd = command(session);
     try {
-      cmd.execute(conn.context);
+      if( cmd != null )
+        cmd.execute(conn.context);
+	  // CoRS support
+      conn.res.setHeader("Access-Control-Allow-Origin", "*");
+	  
     } catch(final BaseXException ex) {
       // ignore error if code was assigned (same error message)
       if(cmd.code == null) throw ex;
     }
 
-    final HTTPCode code = cmd.code;
-    if(code != null) throw code.get(cmd.info());
+	if( cmd != null ){
+		final HTTPCode code = cmd.code;
+		if(code != null) throw code.get(cmd.info());
+	}
   }
 
   /**
@@ -46,6 +52,7 @@ public final class RESTServlet extends BaseXServlet {
     if(mth.equals(HttpMethod.POST.name()))   return RESTPost.get(session);
     if(mth.equals(HttpMethod.PUT.name()))    return RESTPut.get(session);
     if(mth.equals(HttpMethod.DELETE.name())) return RESTDelete.get(session);
+    if(mth.equals(HttpMethod.OPTIONS.name())) return RESTOptions.get(session);
     throw HTTPCode.NOT_IMPLEMENTED_X.get(session.conn.req.getMethod());
   }
 }
